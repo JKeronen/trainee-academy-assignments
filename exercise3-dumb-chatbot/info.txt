@@ -1,0 +1,11 @@
+-----------------------------
+Here´s a list of commands that I can execute! 
+
+help: Opens this dialog.
+hello: I will say hello to you
+botInfo: I will introduce myself
+botName: I will tell my name
+botRename: You can rename me
+forecast: I will forecast tomorrows weather 100% accurately
+quit: Quits the program.
+-----------------------------
