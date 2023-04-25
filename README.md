@@ -1,71 +1,114 @@
 # trainee-academy-assignments
 
-This repository showcases a few of my solutions to the assignments I have done in Trainee Academy. I have chosen three assignments that I thought were educational and interesting. They represent a variety of programming concepts we have learned and that I feel I am now using confidently.
+## Assignment #1: Chatbot
 
-Only the essential parts of the code are included in this document. The full executable versions can be found from this repository.
-
-## Assignment #1: Cleanup
+In command prompt navigate the right folder and type "npm install" to install the app and "node exercise3.js" to use it.
 
 ### The assignment
 
-```javascript
-const objectArray = [ 
-    { x: 14, y: 21, type: "tree", toDelete: false },
-    { x: 1, y: 30, type: "house", toDelete: false },
-    { x: 22, y: 10, type: "tree", toDelete: true },
-    { x: 5, y: 34, type: "rock", toDelete: true },
-    null,
-    { x: 19, y: 40, type: "tree", toDelete: false },
-    { x: 35, y: 35, type: "house", toDelete: false },
-    { x: 19, y: 40, type: "tree", toDelete: true },
-    { x: 24, y: 31, type: "rock", toDelete: false } 
-];
+Create a chatbot commandline application with following orderlist:
+
+```
+-----------------------------
+Here´s a list of commands that I can execute! 
+
+help: Opens this dialog.
+hello: I will say hello to you
+botInfo: I will introduce myself
+botName: I will tell my name
+botRename: You can rename me
+forecast: I will forecast tomorrows weather 100% accurately
+quit: Quits the program.
+-----------------------------
+
 ```
 
-There are some entries in the above array that are marked to be deleted.
-1. Erase the entries by finding them and setting them to null. Do not replace the original array, but modify it instead.
-2. Erase the entries by generating a new array with Array.map where the objects to be deleted have been replaced with null and the rest stay as-is.
-3. Imagine that instead of 9 entries, the above array would have 100,000 entries. What would be the implications for performance and memory use between doing it like in 1) or like in 2)? To answer this question, write a comment to your source where you present your thoughts on the subject.
-
+1. use readline-sync package to input commands
+2. When user writes the command, acts chatbot accordingly
+    - If the user writes "hello" in to the command line, you should open a dialog that asks the users name and after that say hello to user with given name. 
+    - Command "botInfo" gives the list of all used commands, even they are incorrect
+    - "botName" shows it's name
+    - You can chance bot name using command "botRename" 
+    - "forecast" gives a random weather, it's not a realistic forecast!!
+    - Type "quit" to end the application 
 
 ### Initial thoughts
 
-There are two assignments. In both I want the result to be an array with equal amount of elements as in the original array, but with some of the elements being null. In the first one I need to modify the original array, and in the second one I will create a new array.
+Idea for a short main program came quickly. Each command needs own component and some system to command them. All bot data should be store to object instead of many variables.
 
-In the first assignment I need to iterate through every element of the array, modifying it as we move from one to the next. In the second one the array method `map` takes care of the actual iteration and I need just to implement the logic for creating new elements.
+I created an object for data collecting and creating information. Info message was chosen between file and text variable and I chose file. Action in main component is to ask commands from user and store them. Commands will send to another component.
 
-I decided to first do 1) and 2), and after having solutions think about 3) when I have something concrete down.
+Component botCommander will handle the commands using the bot data.  
 
 ### Solution
 
-#### 1)
+#### 1) main app
 ```javascript
-for (let i = 0; i < objectArray.length; i++) {
-    if (objectArray[i] !== null && objectArray[i].toDelete) {
-        objectArray[i] = null;
+const bot = {
+    botName: "Jan",
+    botInfo: [],
+    forecast: {
+        temperature: Math.round(Math.random()*50)-25, // -25 - +25
+        cloudy: Math.random() < 0.5, //true or false
+        sunny: Math.random() < 0.5,
+        wind: Math.round(Math.random()*200)/10 // 0.0 - 20.0
     }
 }
 ```
+This object includes all data is needed. botInfo- array collects user's used commands. Weather information is created by Math.random- function.
 
-In this solution to the first part I first check that the objectArray element is not null, since I can't check the value of the toDelete parameter if that would be the case. If the element is not null and it does have the toDelete parameter set to true, the element in question will be set to null.
-
-#### 2)
 ```javascript
-const cleaned = objectArray.map(element => {
-    if (element === null || !element.toDelete) {
-        return element;
-    }
+while(true) {
+    const answer = readline.question("Give me an answer: ");
+        if(answer === "quit") {
+            console.log("Bye!");
+            break;
+        } else {
+            bot.botInfo.push(answer); // collect all used commands
+            commandsHandler(answer,bot);
+        }
+};
+```
+In while-loop is commnd line reading and sending to command handling component. Typing "quit" will result to program end. All used command is pushed to array.
 
-    return null;
-});
+
+#### 2) Handling commands
+
+```javascript
+const commandsHandler = (command,bot) => {
+    switch (command) {
+        case "help":
+            readInfo();
+            break;
+```
+All available commands have own function and unfit command is rejected as default case.
+
+```javascript
+const commandLog = (commands) => {
+    commands.map(function(element, index){ 
+        console.log(`${element} -> counter = ${index}`);
+     });
+}
+```
+Components like *commandLog* is called from switch case and it uses array, which is stored given commands. 
+
+```javascript
+const showForecast = (forecast) => {
+    console.log(`Tomorrows weather will be....`);
+    Object.entries(forecast).forEach(([key, value]) => {
+        console.log(`${key}: ${value}`);
+    });
+}
+```
+Forecast- component uses forecast- object ja each of it's value will be printed to console.
+
+#### 3) Chatbot info file
+
+```javascript
+const readInfo = () => {
+    const data = fs.readFileSync("info.txt", "utf8");
+    console.log(data);
+}
 ```
 
-In this solution to the second part I use the map method as required. The callback function that takes the element as parameter first checks if the element is null. If so, the element itself is returned. If the element is not null, it continues to check if it has a truthy toDelete property. If that is not the case, again the element itself is returned.
-
-In all other cases null is returned. This means that null is returned if the element was *not* null *and* it had a truthy toDelete property.
-
-#### 3)
-Since the approach used in 2) creates a copy of the array, it takes more memory and typically also executes slower. Assuming no special optimizations, the performance of processing big arrays could be significantly worse with 2), especially if it's done often.
-
-
-## Assignment #2: ???
+Commands handler uses file named info.txt to get chatbot information. Module *fs* have function *readFileSync* and gives the promise. File format is supposed to be *utf8*. 
